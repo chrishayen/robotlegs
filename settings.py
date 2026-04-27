@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (
     QSplitter,
 )
 
-from config import load_config, save_config
+from config_file import load_config, save_config
 
 
 class SettingsWidget(QWidget):

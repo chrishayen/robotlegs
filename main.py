@@ -18,7 +18,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("RobotLegs")
-        self.resize(400, 300)
+        self.resize(1280, 720)
 
         # Use a QStackedWidget to hold both views without destroying them
         self.stacked = QStackedWidget()
