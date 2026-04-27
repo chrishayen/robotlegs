@@ -6,11 +6,10 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
     QStackedWidget,
-    QMenuBar,
-    QMenu,
     QToolBar,
 )
 from PySide6.QtGui import QAction
+
 from settings import SettingsWidget
 
 
@@ -37,11 +36,8 @@ class MainWindow(QMainWindow):
 
         self.stacked.setCurrentIndex(0)
 
-        # Menubar
-        menubar = QMenuBar(self)
-        self.setMenuWidget(menubar)
-
-        edit_menu = menubar.addMenu("Edit")
+        # Menubar (use QMainWindow's built-in menuBar())
+        edit_menu = self.menuBar().addMenu("Edit")
         settings_action = QAction("Settings", self)
         settings_action.triggered.connect(self._show_settings)
         edit_menu.addAction(settings_action)

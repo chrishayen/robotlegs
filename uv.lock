@@ -51,7 +51,7 @@ wheels = [
 ]
 
 [[package]]
-name = "pyuitest"
+name = "robotlegs"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

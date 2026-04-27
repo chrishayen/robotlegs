@@ -1,7 +1,7 @@
 [project]
-name = "pyuitest"
+name = "robotlegs"
 version = "0.1.0"
-description = "Add your description here"
+description = "LLM endpoint manager and settings UI"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
