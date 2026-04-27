@@ -5,22 +5,66 @@ from PySide6.QtWidgets import (
     QLabel,
     QVBoxLayout,
     QWidget,
+    QStackedWidget,
+    QMenuBar,
+    QMenu,
+    QToolBar,
 )
+from PySide6.QtGui import QAction
+from settings import SettingsWidget
+
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("RobotLegs")
+        self.resize(400, 300)
+
+        # Use a QStackedWidget to hold both views without destroying them
+        self.stacked = QStackedWidget()
+        self.setCentralWidget(self.stacked)
+
+        # Index 0: Home widget
+        self.home_widget = QWidget()
+        home_layout = QVBoxLayout(self.home_widget)
+        home_layout.addWidget(QLabel("Hello from PySide6!"))
+        self.stacked.addWidget(self.home_widget)
+
+        # Index 1: Settings widget
+        self.settings_widget = SettingsWidget(self)
+        self.settings_widget.saved.connect(self._on_save)
+        self.stacked.addWidget(self.settings_widget)
+
+        self.stacked.setCurrentIndex(0)
+
+        # Menubar
+        menubar = QMenuBar(self)
+        self.setMenuWidget(menubar)
+
+        edit_menu = menubar.addMenu("Edit")
+        settings_action = QAction("Settings", self)
+        settings_action.triggered.connect(self._show_settings)
+        edit_menu.addAction(settings_action)
+
+        # Toolbar
+        toolbar = QToolBar(self)
+        toolbar.setMovable(False)
+        self.addToolBar(toolbar)
+
+        toolbar_settings = QAction("Settings", self)
+        toolbar_settings.triggered.connect(self._show_settings)
+        toolbar.addAction(toolbar_settings)
+
+    def _show_settings(self):
+        self.stacked.setCurrentIndex(1)
+
+    def _on_save(self):
+        self.stacked.setCurrentIndex(0)
 
 
 def main():
     app = QApplication(sys.argv)
-
-    window = QMainWindow()
-    window.setWindowTitle("PySide6 Sample App")
-    window.resize(400, 300)
-
-    central = QWidget()
-    window.setCentralWidget(central)
-    layout = QVBoxLayout(central)
-
-    layout.addWidget(QLabel("Hello from PySide6!"))
-
+    window = MainWindow()
     window.show()
     sys.exit(app.exec())
 
