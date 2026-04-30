@@ -4,6 +4,7 @@ import './app.css';
 const chatPanel = document.getElementById('chat-panel');
 const chatToggle = document.getElementById('chat-toggle');
 const chatClose = document.getElementById('chat-close');
+const chatTitle = document.querySelector('.chat-title');
 const chatMessages = document.querySelector('.chat-messages');
 const chatInput = document.querySelector('.chat-input');
 const chatSend = document.querySelector('.chat-send');
@@ -93,6 +94,10 @@ async function sendMessage() {
     const message = chatInput.value.trim();
     if (!message) return;
 
+    // Hide idle message on first user message
+    const idleMsg = document.querySelector('.idle-message');
+    if (idleMsg) idleMsg.classList.add('hidden');
+
     console.log('sending message:', message);
     console.log('window.go:', window.go);
     console.log('window.go.main:', window.go?.main);
@@ -102,6 +107,7 @@ async function sendMessage() {
     appendMessage(message, 'user');
 
     const loadingBubble = appendMessage('...', 'assistant', true);
+    chatTitle.classList.add('active');
 
     try {
         const response = await window.go.main.App.Chat(message);
@@ -112,6 +118,8 @@ async function sendMessage() {
         console.error('Chat error:', err);
         if (loadingBubble) loadingBubble.remove();
         appendMessage(`Error: ${err.message || err}`, 'assistant');
+    } finally {
+        chatTitle.classList.remove('active');
     }
 }
 
@@ -126,8 +134,8 @@ function appendMessage(text, sender, isLoading = false) {
     const bubble = document.createElement('div');
     bubble.className = 'chat-bubble';
     if (sender === 'user') {
-        bubble.style.backgroundColor = '#2a2a2a';
-        bubble.style.borderColor = '#3a3a3a';
+        bubble.style.background = 'linear-gradient(135deg, #2a2a2a 0%, #222 100%)';
+        bubble.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.04)';
     }
     if (isLoading) {
         bubble.style.opacity = '0.6';
@@ -150,10 +158,10 @@ function formatMessage(text) {
         .replace(/>/g, '&gt;');
 
     escaped = escaped.replace(/```(\w*)\n?([\s\S]*?)```/g, (match, lang, code) => {
-        return `<pre style="background:#111;padding:8px;border-radius:6px;overflow-x:auto;margin:4px 0;font-size:12px;border:1px solid #2a2a2a"><code>${code.trim()}</code></pre>`;
+        return `<pre style="background:#111;padding:8px;border-radius:6px;overflow-x:auto;margin:4px 0;font-size:12px;box-shadow:inset 0 1px 3px rgba(0,0,0,0.3)"><code>${code.trim()}</code></pre>`;
     });
 
-    escaped = escaped.replace(/`([^`]+)`/g, '<code style="background:#1a1a1a;padding:2px 4px;border-radius:3px;font-size:12px;border:1px solid #2a2a2a">$1</code>');
+    escaped = escaped.replace(/`([^`]+)`/g, '<code style="background:#1a1a1a;padding:2px 4px;border-radius:3px;font-size:12px;box-shadow:inset 0 1px 2px rgba(0,0,0,0.3)">$1</code>');
 
     escaped = escaped.replace(/\n/g, '<br>');
 
