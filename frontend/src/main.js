@@ -1,43 +1,50 @@
 import './style.css';
 import './app.css';
 
-import logo from './assets/images/logo-universal.png';
-import {Greet} from '../wailsjs/go/main/App';
+const chatPanel = document.getElementById('chat-panel');
+const chatToggle = document.getElementById('chat-toggle');
+const chatClose = document.getElementById('chat-close');
+const app = document.getElementById('app');
 
-document.querySelector('#app').innerHTML = `
-    <img id="logo" class="logo">
-      <div class="result" id="result">Please enter your name below 👇</div>
-      <div class="input-box" id="input">
-        <input class="input" id="name" type="text" autocomplete="off" />
-        <button class="btn" onclick="greet()">Greet</button>
-      </div>
-    </div>
-`;
-document.getElementById('logo').src = logo;
+chatToggle.classList.add('hidden');
 
-let nameElement = document.getElementById("name");
-nameElement.focus();
-let resultElement = document.getElementById("result");
+chatClose.addEventListener('click', () => {
+    chatPanel.classList.add('hidden');
+    chatToggle.classList.remove('hidden');
+});
 
-// Setup the greet function
-window.greet = function () {
-    // Get name
-    let name = nameElement.value;
+chatToggle.addEventListener('click', () => {
+    chatPanel.classList.remove('hidden');
+    chatToggle.classList.add('hidden');
+});
 
-    // Check if the input is empty
-    if (name === "") return;
+// Draggable dot grid
+let isDragging = false;
+let startX = 0;
+let startY = 0;
+let currentX = 0;
+let currentY = 0;
 
-    // Call App.Greet(name)
-    try {
-        Greet(name)
-            .then((result) => {
-                // Update result with data back from App.Greet()
-                resultElement.innerText = result;
-            })
-            .catch((err) => {
-                console.error(err);
-            });
-    } catch (err) {
-        console.error(err);
+app.addEventListener('mousedown', (e) => {
+    // Don't drag if clicking on the chat panel or toggle button
+    if (e.target.closest('.chat-panel') || e.target.closest('.chat-toggle')) {
+        return;
     }
-};
+    isDragging = true;
+    startX = e.clientX - currentX;
+    startY = e.clientY - currentY;
+    app.style.cursor = 'grabbing';
+});
+
+window.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    currentX = e.clientX - startX;
+    currentY = e.clientY - startY;
+    app.style.backgroundPosition = `${currentX}px ${currentY}px`;
+});
+
+window.addEventListener('mouseup', () => {
+    if (!isDragging) return;
+    isDragging = false;
+    app.style.cursor = 'grab';
+});
