@@ -1,5 +1,7 @@
 import './style.css';
 import './app.css';
+import './canvas.css';
+import { CanvasNode, enableDragging } from './canvas-node.js';
 
 const chatPanel = document.getElementById('chat-panel');
 const chatToggle = document.getElementById('chat-toggle');
@@ -36,6 +38,38 @@ waitForWails().then(() => {
     console.log('window.go.main:', window.go.main);
     console.log('window.go.main.App:', window.go.main.App);
 
+    // --- Canvas: create a mock component node ---
+    const canvas = document.getElementById('canvas');
+
+    const mockNode = new CanvasNode({
+        id: 'component-1',
+        x: 320,
+        y: 180,
+        title: 'Component',
+        dotColor: 'yellow',
+        inputs: [
+            { name: 'config', color: 'yellow' },
+            { name: 'data', color: 'green' },
+        ],
+        outputs: [
+            { name: 'result', color: 'blue' },
+            { name: 'error', color: 'red' },
+        ],
+        bodyHTML: `
+            <div class="node-field">
+                <div class="node-field-label">type</div>
+                <div class="node-field-value">Application Component</div>
+            </div>
+            <div class="node-field">
+                <div class="node-field-label">status</div>
+                <div class="node-field-value">● active</div>
+            </div>
+        `,
+    });
+
+    canvas.appendChild(mockNode.render());
+    enableDragging(canvas);
+
     // Chat UI
     chatClose.addEventListener('click', () => {
         chatPanel.classList.add('hidden');
@@ -57,33 +91,40 @@ waitForWails().then(() => {
         }
     });
 
-    // Draggable dot grid
-    let isDragging = false;
-    let startX = 0;
-    let startY = 0;
-    let currentX = 0;
-    let currentY = 0;
+    // Pan: dot grid + canvas nodes move together
+    let isPanning = false;
+    let panStartX = 0;
+    let panStartY = 0;
+    let panOffsetX = 0;
+    let panOffsetY = 0;
 
     app.addEventListener('mousedown', (e) => {
-        if (e.target.closest('.chat-panel') || e.target.closest('.chat-toggle')) {
+        if (e.target.closest('.chat-panel') || e.target.closest('.chat-toggle') || e.target.closest('.canvas-node')) {
             return;
         }
-        isDragging = true;
-        startX = e.clientX - currentX;
-        startY = e.clientY - currentY;
+        isPanning = true;
+        panStartX = e.clientX;
+        panStartY = e.clientY;
         app.style.cursor = 'grabbing';
     });
 
     window.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        currentX = e.clientX - startX;
-        currentY = e.clientY - startY;
-        app.style.backgroundPosition = `${currentX}px ${currentY}px`;
+        if (!isPanning) return;
+        const dx = e.clientX - panStartX;
+        const dy = e.clientY - panStartY;
+        panOffsetX += dx;
+        panOffsetY += dy;
+        panStartX = e.clientX;
+        panStartY = e.clientY;
+
+        // Move background and canvas content together
+        app.style.backgroundPosition = `${panOffsetX}px ${panOffsetY}px`;
+        canvas.style.transform = `translate(${panOffsetX}px, ${panOffsetY}px)`;
     });
 
     window.addEventListener('mouseup', () => {
-        if (!isDragging) return;
-        isDragging = false;
+        if (!isPanning) return;
+        isPanning = false;
         app.style.cursor = 'grab';
     });
 });

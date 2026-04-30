@@ -16,8 +16,15 @@ html, body {
     background-image: radial-gradient(#282828 1px, transparent 1px);
     background-size: 28px 28px;
     cursor: grab;
+    position: relative;
 }
 
 #app * {
     cursor: default;
+}
+
+#canvas {
+    position: absolute;
+    inset: 0;
+    overflow: visible;
 }
