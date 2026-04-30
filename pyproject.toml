@@ -1,9 +1,0 @@
-[project]
-name = "robotlegs"
-version = "0.1.0"
-description = "LLM endpoint manager and settings UI"
-readme = "README.md"
-requires-python = ">=3.13"
-dependencies = [
-    "pyside6>=6.11.0",
-]
