@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"embed"
 
 	"github.com/wailsapp/wails/v2"
@@ -15,6 +16,9 @@ func main() {
 	// Create an instance of the app structure
 	app := NewApp()
 
+	// Create command server for external control
+	cmdServer := NewCommandServer(app, 9876)
+
 	// Create application with options
 	err := wails.Run(&options.App{
 		Title:  "robotlegs",
@@ -24,7 +28,10 @@ func main() {
 			Assets: assets,
 		},
 		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
-		OnStartup:        app.startup,
+		OnStartup: func(ctx context.Context) {
+			app.startup(ctx)
+			cmdServer.Start()
+		},
 		Bind: []interface{}{
 			app,
 		},

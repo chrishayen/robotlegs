@@ -7,8 +7,6 @@
  *  - input ports on the left edge, output ports on the right edge
  */
 
-
-
 export class CanvasNode {
     constructor(config) {
         this.id = config.id || `node-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -136,6 +134,12 @@ export function enableDragging(container, getPanOffset) {
 
         activeNode.style.left = `${newX}px`;
         activeNode.style.top = `${newY}px`;
+
+        // Redraw connections for this canvas
+        const canvasId = container.id.replace('canvas-', '');
+        if (diagramStates[canvasId]) {
+            drawConnections(container, diagramStates[canvasId]);
+        }
     }
 
     function onPointerUp() {
@@ -151,6 +155,12 @@ export function enableDragging(container, getPanOffset) {
         activeNode.classList.remove('selected');
         activeNode.style.zIndex = '';
         activeNode = null;
+
+        // Redraw connections after snap
+        const canvasId = container.id.replace('canvas-', '');
+        if (diagramStates[canvasId]) {
+            drawConnections(container, diagramStates[canvasId]);
+        }
     }
 
     container.addEventListener('pointerdown', onPointerDown);
@@ -162,4 +172,160 @@ export function enableDragging(container, getPanOffset) {
         window.removeEventListener('pointermove', onPointerMove);
         window.removeEventListener('pointerup', onPointerUp);
     };
+}
+
+// Store diagram state per canvas for connection redraw
+const diagramStates = {};
+
+/**
+ * Draw SVG connection lines between nodes on a canvas.
+ * @param {HTMLElement} canvas - The canvas element
+ * @param {Object} state - { nodes: [{id, element}], connections: [{id, fromNode, toNode, fromPort, toPort, label, color}] }
+ */
+export function drawConnections(canvas, state) {
+    if (!canvas || !state) return;
+
+    // Store state for redraw on drag
+    const canvasId = canvas.id.replace('canvas-', '');
+    diagramStates[canvasId] = state;
+
+    // Remove existing SVG
+    const existingSvg = canvas.querySelector('svg.connections-svg');
+    if (existingSvg) existingSvg.remove();
+
+    // Create SVG overlay
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.classList.add('connections-svg');
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('height', '100%');
+    svg.setAttribute('viewBox', '0 0 2000 2000');
+    svg.style.position = 'absolute';
+    svg.style.top = '0';
+    svg.style.left = '0';
+    svg.style.pointerEvents = 'none';
+    svg.style.zIndex = '0';
+
+    // Add defs for arrow markers and gradients
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+
+    // Arrow marker
+    const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+    marker.setAttribute('id', 'arrowhead');
+    marker.setAttribute('viewBox', '0 0 10 7');
+    marker.setAttribute('refX', '9');
+    marker.setAttribute('refY', '3.5');
+    marker.setAttribute('markerWidth', '8');
+    marker.setAttribute('markerHeight', '6');
+    marker.setAttribute('orient', 'auto');
+    const arrowPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    arrowPath.setAttribute('d', 'M 0 0 L 10 3.5 L 0 7 Z');
+    arrowPath.setAttribute('fill', '#555');
+    marker.appendChild(arrowPath);
+    defs.appendChild(marker);
+
+    svg.appendChild(defs);
+
+    // Draw each connection
+    if (state.connections) {
+        state.connections.forEach(conn => {
+            const fromEl = findNodeElement(canvas, conn.fromNode);
+            const toEl = findNodeElement(canvas, conn.toNode);
+
+            if (!fromEl || !toEl) return;
+
+            const fromRect = fromEl.getBoundingClientRect();
+            const toRect = toEl.getBoundingClientRect();
+            const canvasRect = canvas.getBoundingClientRect();
+
+            // Calculate port positions
+            const fromX = fromRect.right - canvasRect.left;
+            const fromY = fromRect.top + fromRect.height / 2 - canvasRect.top;
+            const toX = toRect.left - canvasRect.left;
+            const toY = toRect.top + toRect.height / 2 - canvasRect.top;
+
+            // Bezier control points
+            const dx = Math.abs(toX - fromX);
+            const cp = Math.max(dx * 0.5, 60);
+
+            // Determine curve direction
+            let cp1x, cp1y, cp2x, cp2y;
+            if (toX > fromX) {
+                // Left to right
+                cp1x = fromX + cp;
+                cp1y = fromY;
+                cp2x = toX - cp;
+                cp2y = toY;
+            } else {
+                // Right to left or wrapping
+                cp1x = fromX - cp;
+                cp1y = fromY;
+                cp2x = toX + cp;
+                cp2y = toY;
+            }
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            const d = `M ${fromX} ${fromY} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${toX} ${toY}`;
+            path.setAttribute('d', d);
+            path.setAttribute('fill', 'none');
+
+            const color = conn.color || 'white';
+            const strokeColor = getPortColor(color);
+            path.setAttribute('stroke', strokeColor);
+            path.setAttribute('stroke-width', '1.5');
+            path.setAttribute('stroke-opacity', '0.5');
+            path.setAttribute('marker-end', 'url(#arrowhead)');
+
+            svg.appendChild(path);
+
+            // Add label if present
+            if (conn.label) {
+                const midX = (fromX + toX) / 2;
+                const midY = (fromY + toY) / 2 - 8;
+
+                const labelBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.textContent = conn.label;
+                text.setAttribute('x', midX);
+                text.setAttribute('y', midY);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('fill', '#888');
+                text.setAttribute('font-size', '10');
+                text.setAttribute('font-family', 'Inter, sans-serif');
+
+                // Measure text for background
+                svg.appendChild(text);
+                const bbox = text.getBBox();
+                svg.removeChild(text);
+
+                labelBg.setAttribute('x', bbox.x - 4);
+                labelBg.setAttribute('y', bbox.y - 2);
+                labelBg.setAttribute('width', bbox.width + 8);
+                labelBg.setAttribute('height', bbox.height + 4);
+                labelBg.setAttribute('rx', '3');
+                labelBg.setAttribute('fill', '#111');
+                labelBg.setAttribute('fill-opacity', '0.7');
+
+                svg.appendChild(labelBg);
+                svg.appendChild(text);
+            }
+        });
+    }
+
+    canvas.appendChild(svg);
+}
+
+function findNodeElement(canvas, nodeId) {
+    return canvas.querySelector(`[data-node-id="${nodeId}"]`);
+}
+
+function getPortColor(color) {
+    const colors = {
+        'yellow': '#facc15',
+        'green': '#4ade80',
+        'red': '#f87171',
+        'blue': '#60a5fa',
+        'purple': '#c084fc',
+        'white': '#888',
+    };
+    return colors[color] || '#888';
 }
