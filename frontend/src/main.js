@@ -163,23 +163,6 @@ function seedCanvases() {
 
     // System canvas
     const systemCanvas = document.getElementById('canvas-system');
-    const systemNode1 = new CanvasNode({
-        id: 'system-1',
-        x: 160,
-        y: 140,
-        title: 'User Browser',
-        dotColor: 'blue',
-        inputs: [],
-        outputs: [{ name: 'HTTP', color: 'green' }],
-        bodyHTML: `
-            <div class="node-field">
-                <div class="node-field-label">type</div>
-                <div class="node-field-value">Person</div>
-            </div>
-        `,
-    });
-    systemCanvas.appendChild(systemNode1.render());
-
     const systemNode2 = new CanvasNode({
         id: 'system-2',
         x: 520,
