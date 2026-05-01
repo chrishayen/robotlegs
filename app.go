@@ -30,11 +30,6 @@ func (a *App) startup(ctx context.Context) {
 	a.sessionStart = true
 }
 
-// Greet returns a greeting for the given name
-func (a *App) Greet(name string) string {
-	return fmt.Sprintf("Hello %s, It's show time!", name)
-}
-
 // Chat sends a message to Claude via `claude -p` and returns the response.
 // Subsequent messages use `-c` to resume the same session.
 func (a *App) Chat(message string) string {

@@ -23,8 +23,18 @@ html, body {
     cursor: default;
 }
 
+#app .chat-input {
+    cursor: text;
+}
+
+#app .chat-close,
+#app .chat-send {
+    cursor: pointer;
+}
+
 #canvas {
     position: absolute;
     inset: 0;
     overflow: visible;
+    z-index: 1;
 }

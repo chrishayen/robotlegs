@@ -12,7 +12,21 @@ const chatInput = document.querySelector('.chat-input');
 const chatSend = document.querySelector('.chat-send');
 const app = document.getElementById('app');
 
-chatToggle.classList.add('hidden');
+// Chat UI: attach immediately, don't wait for Wails
+chatPanel.addEventListener('pointerenter', () => {
+    chatInput.focus();
+});
+
+chatClose.addEventListener('click', () => {
+    chatPanel.classList.add('hidden');
+    chatToggle.classList.remove('hidden');
+});
+
+chatToggle.addEventListener('click', () => {
+    chatPanel.classList.remove('hidden');
+    chatToggle.classList.add('hidden');
+    chatInput.focus();
+});
 
 // Wails v2.12.0 injects bindings on window.go after page load
 // Wait for window.go to be ready, then wire up event listeners
@@ -34,10 +48,6 @@ function waitForWails() {
 }
 
 waitForWails().then(() => {
-    console.log('Wails bindings ready:', window.go);
-    console.log('window.go.main:', window.go.main);
-    console.log('window.go.main.App:', window.go.main.App);
-
     // --- Canvas: create a mock component node ---
     const canvas = document.getElementById('canvas');
 
@@ -69,18 +79,6 @@ waitForWails().then(() => {
 
     canvas.appendChild(mockNode.render());
     enableDragging(canvas);
-
-    // Chat UI
-    chatClose.addEventListener('click', () => {
-        chatPanel.classList.add('hidden');
-        chatToggle.classList.remove('hidden');
-    });
-
-    chatToggle.addEventListener('click', () => {
-        chatPanel.classList.remove('hidden');
-        chatToggle.classList.add('hidden');
-        chatInput.focus();
-    });
 
     chatSend.addEventListener('click', sendMessage);
 
@@ -131,18 +129,12 @@ waitForWails().then(() => {
 
 // Send message handler
 async function sendMessage() {
-    console.log('sendMessage called');
     const message = chatInput.value.trim();
     if (!message) return;
 
     // Hide idle message on first user message
     const idleMsg = document.querySelector('.idle-message');
     if (idleMsg) idleMsg.classList.add('hidden');
-
-    console.log('sending message:', message);
-    console.log('window.go:', window.go);
-    console.log('window.go.main:', window.go?.main);
-    console.log('window.go.main.App:', window.go?.main?.App);
 
     chatInput.value = '';
     appendMessage(message, 'user');

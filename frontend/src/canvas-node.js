@@ -108,10 +108,12 @@ export function enableDragging(container) {
         if (!node || e.target.closest('.node-port-dot')) return;
 
         activeNode = node;
-        const rect = node.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
-        offsetX = e.clientX - (rect.left - containerRect.left);
-        offsetY = e.clientY - (rect.top - containerRect.top);
+        // Read current logical position (untransformed coord space)
+        const currentX = parseFloat(activeNode.style.left) || 0;
+        const currentY = parseFloat(activeNode.style.top) || 0;
+        // Cursor offset relative to node's logical origin
+        offsetX = e.clientX - currentX;
+        offsetY = e.clientY - currentY;
 
         activeNode.classList.add('selected');
         activeNode.style.zIndex = 10;
@@ -120,13 +122,8 @@ export function enableDragging(container) {
 
     function onPointerMove(e) {
         if (!activeNode) return;
-        const containerRect = container.getBoundingClientRect();
-        let newX = e.clientX - containerRect.left - offsetX;
-        let newY = e.clientY - containerRect.top - offsetY;
-
-        // Snap to grid (28px matches background-size)
-        newX = Math.round(newX / 28) * 28;
-        newY = Math.round(newY / 28) * 28;
+        let newX = e.clientX - offsetX;
+        let newY = e.clientY - offsetY;
 
         activeNode.style.left = `${newX}px`;
         activeNode.style.top = `${newY}px`;
@@ -134,6 +131,14 @@ export function enableDragging(container) {
 
     function onPointerUp() {
         if (!activeNode) return;
+        // Snap to grid on release (28px matches background-size)
+        let newX = parseFloat(activeNode.style.left) || 0;
+        let newY = parseFloat(activeNode.style.top) || 0;
+        newX = Math.round(newX / 28) * 28;
+        newY = Math.round(newY / 28) * 28;
+        activeNode.style.left = `${newX}px`;
+        activeNode.style.top = `${newY}px`;
+
         activeNode.classList.remove('selected');
         activeNode.style.zIndex = '';
         activeNode = null;
