@@ -1,0 +1,27 @@
+<svg aria-labelledby="title desc" xmlns="http://www.w3.org/2000/svg" viewBox="55 55 290 290" height="200" width="200">
+  <title>C4 Agent Icon</title>
+  <desc id="desc">Tight cropped minimal C4 icon — no extra whitespace</desc>
+  
+  
+  
+  <rect stroke-width="14" stroke="#F8FAFC" fill="none" rx="8" height="256" width="256" y="72" x="72"></rect>
+  
+  
+  <rect stroke-width="11" stroke="#F8FAFC" fill="none" rx="6" height="184" width="184" y="108" x="108"></rect>
+  
+  
+  <rect stroke-width="9" stroke="#F8FAFC" fill="none" rx="5" height="112" width="112" y="144" x="144"></rect>
+  
+  
+  <rect stroke-width="7" stroke="#F8FAFC" fill="none" rx="4" height="56" width="56" y="172" x="172"></rect>
+
+  
+  <circle stroke-width="7" stroke="#F8FAFC" fill="none" r="26" cy="200" cx="200"></circle>
+  <circle fill="#F8FAFC" r="13" cy="200" cx="200"></circle>
+
+  
+  <circle fill="#F8FAFC" r="4" cy="162" cx="162"></circle>
+  <circle fill="#F8FAFC" r="4" cy="162" cx="238"></circle>
+  <circle fill="#F8FAFC" r="4" cy="238" cx="162"></circle>
+  <circle fill="#F8FAFC" r="4" cy="238" cx="238"></circle>
+</svg>

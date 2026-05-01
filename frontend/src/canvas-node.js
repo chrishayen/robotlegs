@@ -96,9 +96,11 @@ export class CanvasNode {
 
 /**
  * Enable dragging on all .canvas-node elements inside a container.
+ * @param {HTMLElement} container - The canvas element
+ * @param {Function} getPanOffset - Callback that returns {x, y} pan offset for this canvas
  * Returns a cleanup function.
  */
-export function enableDragging(container) {
+export function enableDragging(container, getPanOffset) {
     let activeNode = null;
     let offsetX = 0;
     let offsetY = 0;
@@ -108,12 +110,14 @@ export function enableDragging(container) {
         if (!node || e.target.closest('.node-port-dot')) return;
 
         activeNode = node;
-        // Read current logical position (untransformed coord space)
         const currentX = parseFloat(activeNode.style.left) || 0;
         const currentY = parseFloat(activeNode.style.top) || 0;
-        // Cursor offset relative to node's logical origin
-        offsetX = e.clientX - currentX;
-        offsetY = e.clientY - currentY;
+        // Convert mouse position to canvas local coordinates
+        const pan = getPanOffset();
+        const localMouseX = e.clientX - pan.x;
+        const localMouseY = e.clientY - pan.y;
+        offsetX = localMouseX - currentX;
+        offsetY = localMouseY - currentY;
 
         activeNode.classList.add('selected');
         activeNode.style.zIndex = 10;
@@ -122,8 +126,13 @@ export function enableDragging(container) {
 
     function onPointerMove(e) {
         if (!activeNode) return;
-        let newX = e.clientX - offsetX;
-        let newY = e.clientY - offsetY;
+        // Convert mouse position to canvas local coordinates
+        const pan = getPanOffset();
+        const localMouseX = e.clientX - pan.x;
+        const localMouseY = e.clientY - pan.y;
+
+        let newX = localMouseX - offsetX;
+        let newY = localMouseY - offsetY;
 
         activeNode.style.left = `${newX}px`;
         activeNode.style.top = `${newY}px`;

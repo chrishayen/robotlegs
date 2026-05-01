@@ -18,8 +18,41 @@ const c4Canvases = document.querySelectorAll('.c4-canvas');
 
 let activeLevel = 'system-landscape';
 
+// Per-canvas pan state so each C4 level remembers its own scroll position
+let panOffsetX = 0;
+let panOffsetY = 0;
+
+const panState = {
+    'system-landscape': { offsetX: 0, offsetY: 0 },
+    'system':           { offsetX: 0, offsetY: 0 },
+    'container':        { offsetX: 0, offsetY: 0 },
+    'component':        { offsetX: 0, offsetY: 0 },
+};
+
+function applyPan() {
+    app.style.backgroundPosition = `${panOffsetX}px ${panOffsetY}px`;
+    const activeCanvas = document.querySelector('.c4-canvas.active');
+    if (activeCanvas) {
+        activeCanvas.style.transform = `translate(${panOffsetX}px, ${panOffsetY}px)`;
+    }
+}
+
 function switchC4Level(level) {
+    // Save current canvas pan state
+    const current = panState[activeLevel];
+    if (current) {
+        current.offsetX = panOffsetX;
+        current.offsetY = panOffsetY;
+    }
+
     activeLevel = level;
+
+    // Restore new canvas pan state
+    const next = panState[level];
+    if (next) {
+        panOffsetX = next.offsetX;
+        panOffsetY = next.offsetY;
+    }
 
     // Update toggle buttons
     c4Toggles.forEach(btn => {
@@ -30,7 +63,15 @@ function switchC4Level(level) {
     c4Canvases.forEach(canvas => {
         const isActive = canvas.id === `canvas-${level}`;
         canvas.classList.toggle('active', isActive);
+        // Always keep each canvas at its own saved pan offset so nodes don't jump
+        const state = panState[canvas.id.replace('canvas-', '')];
+        if (state) {
+            canvas.style.transform = `translate(${state.offsetX}px, ${state.offsetY}px)`;
+        }
     });
+
+    // Apply pan for the now-active canvas
+    applyPan();
 }
 
 c4Toggles.forEach(btn => {
@@ -276,18 +317,16 @@ waitForWails().then(() => {
 
     // Enable dragging on each canvas
     c4Canvases.forEach(canvas => {
-        enableDragging(canvas);
+        enableDragging(canvas, () => ({ x: panOffsetX, y: panOffsetY }));
     });
 
     // --- Pan: dot grid + active canvas nodes move together ---
     let isPanning = false;
     let panStartX = 0;
     let panStartY = 0;
-    let panOffsetX = 0;
-    let panOffsetY = 0;
 
     app.addEventListener('mousedown', (e) => {
-        if (e.target.closest('.chat-panel') || e.target.closest('.chat-toggle') || e.target.closest('.canvas-node') || e.target.closest('.c4-toggles')) {
+        if (e.target.closest('.chat-panel') || e.target.closest('.chat-toggle') || e.target.closest('.canvas-node') || e.target.closest('.c4-toggles') || e.target.closest('.top-bar')) {
             return;
         }
         isPanning = true;
@@ -305,13 +344,7 @@ waitForWails().then(() => {
         panStartX = e.clientX;
         panStartY = e.clientY;
 
-        // Move background and active canvas content together
-        app.style.backgroundPosition = `${panOffsetX}px ${panOffsetY}px`;
-
-        const activeCanvas = document.querySelector('.c4-canvas.active');
-        if (activeCanvas) {
-            activeCanvas.style.transform = `translate(${panOffsetX}px, ${panOffsetY}px)`;
-        }
+        applyPan();
     });
 
     window.addEventListener('mouseup', () => {
