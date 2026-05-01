@@ -1,5 +1,80 @@
 /* Canvas node styles */
 
+/* --- C4 Level Toggles --- */
+.c4-toggles {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 4px;
+    background: linear-gradient(180deg, rgba(20, 20, 20, 0.85) 0%, rgba(16, 16, 16, 0.8) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 4px;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.c4-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    color: #888;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 0.01em;
+}
+
+.c4-toggle:hover {
+    color: #ccc;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.c4-toggle.active {
+    color: #4ade80;
+    background: rgba(74, 222, 128, 0.08);
+    box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.c4-toggle svg {
+    flex-shrink: 0;
+    opacity: 0.7;
+}
+
+.c4-toggle.active svg {
+    opacity: 1;
+}
+
+/* --- C4 Canvases --- */
+.c4-canvases {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+
+.c4-canvas {
+    position: absolute;
+    inset: 0;
+    overflow: visible;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+
+.c4-canvas.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
 .canvas-node {
     position: absolute;
     min-width: 220px;
